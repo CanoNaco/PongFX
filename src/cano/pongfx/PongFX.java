@@ -1,13 +1,14 @@
-/*PAQUETE DONDE SE ENCUENTRA EL ARCHIVO*/
+//paquete donde se encuentra el archivo
 package cano.pongfx;
 
-/*LOS NOMBRES DE LAS CLASES SIEMPRE EMPIEZAN POR MAYUSCULA*/
+//los nombres de las clases siempre empiezan por mayuscula
+import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Scene;
-/*CONTENEDOR PARA LA BOLA*/
+//contenedor para la bola
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-/*CLASE PARA LA BOLA*/
+//clase para la bola
 import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 
@@ -16,23 +17,51 @@ import javafx.stage.Stage;
  * @author Juanma El Cano
  */
 public class PongFX extends Application {
+    //variables de posicion inicial de la bola en X e Y
+    int ballCenterX = 300;
+    int ballCenterY = 200;
+    //variable de velocidad de la bola en X e Y
+    int ballCurrentSpeedX = 3;
+    int ballCurrentSpeedY = 3;
     
     @Override
     public void start(Stage primaryStage) {
-        /*LIENZO DONDE ESTA LA BOLA*/
+        //lienzo de la bola
         Pane root = new Pane();
-        /*EL TAMAÑO DE LA VENTANA*/
+        //el tamaño de la ventana
         Scene ventana = new Scene(root, 600, 400);
-        /*CAMBIO DE COLOR DE LA VENTANA*/
+        //cambio de color de la ventana
         ventana.setFill(Color.BLACK);
         primaryStage.setTitle("PongFX");
         primaryStage.setScene(ventana);
         primaryStage.show();
-        /*CREAR CIRCULO*/
-        Circle ball = new Circle(10, 30, 7);
-        /*COLOR DEL CIRCULO*/
+        //crear bola
+        Circle ball = new Circle(ballCenterX, ballCenterY, 7);
+        //color bola
         ball.setFill(Color.RED);
-        /*METER BOLA EN EL LAYOUT*/
+        //meter bola en el layout
         root.getChildren().add(ball);
-    }
-}
+        AnimationTimer animationBall = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                ball.setCenterX(ballCenterX);
+                ballCenterX+= ballCurrentSpeedX;
+                if(ballCenterX >= 600){
+                    ballCurrentSpeedX = -3;
+                }
+                if(ballCenterX <= 0){
+                    ballCurrentSpeedX = 3;
+                }
+                ball.setCenterY(ballCenterY);
+                ballCenterY+= ballCurrentSpeedY;
+                if(ballCenterY >= 400){
+                    ballCurrentSpeedY = -3;
+                }
+                if(ballCenterY <= 0){
+                    ballCurrentSpeedY = 3;
+                }
+            };
+        };
+        animationBall.start();
+    };
+};
