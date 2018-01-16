@@ -32,6 +32,7 @@ public class PongFX extends Application {
         Scene ventana = new Scene(root, 600, 400);
         //cambio de color de la ventana
         ventana.setFill(Color.BLACK);
+        //Nombre que aparecera en la ventana
         primaryStage.setTitle("PongFX");
         primaryStage.setScene(ventana);
         primaryStage.show();
@@ -41,24 +42,26 @@ public class PongFX extends Application {
         ball.setFill(Color.RED);
         //meter bola en el layout
         root.getChildren().add(ball);
+        //clase que permite el movimiento
         AnimationTimer animationBall = new AnimationTimer() {
             @Override
             public void handle(long now) {
+                
                 ball.setCenterX(ballCenterX);
                 ballCenterX+= ballCurrentSpeedX;
                 if(ballCenterX >= 600){
-                    ballCurrentSpeedX = -3;
+                    ballCurrentSpeedX = -8;
                 }
                 if(ballCenterX <= 0){
-                    ballCurrentSpeedX = 3;
+                    ballCurrentSpeedX = 8;
                 }
                 ball.setCenterY(ballCenterY);
                 ballCenterY+= ballCurrentSpeedY;
                 if(ballCenterY >= 400){
-                    ballCurrentSpeedY = -3;
+                    ballCurrentSpeedY = -8;
                 }
                 if(ballCenterY <= 0){
-                    ballCurrentSpeedY = 3;
+                    ballCurrentSpeedY = 8;
                 }
             };
         };
