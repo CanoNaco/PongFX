@@ -5,14 +5,20 @@ package cano.pongfx;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.event.EventHandler;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.HBox;
 //contenedor para la bola
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 //clase para la bola
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 /**
@@ -37,6 +43,9 @@ public class PongFX extends Application {
     final int STICK_HEIGHT = 50;
     //velocidad del stick
     int stickCurrentSpeed = 0;
+    //tamaño del texto de los marcadores
+    final int TEXT_SIZE = 20;
+    //puntuacion
     
     @Override
     public void start(Stage primaryStage) {
@@ -93,6 +102,14 @@ public class PongFX extends Application {
                 if(stickPosY+STICK_HEIGHT >= SCENE_TAM_Y){
                     stickPosY = SCENE_TAM_Y-STICK_HEIGHT;
                 }
+                //colision de la bola con la pala
+                Shape.intersect(ball, rectStick);
+                Shape shapeColision = Shape.intersect(ball, rectStick);
+                boolean colisionVacia = shapeColision.getBoundsInLocal().isEmpty();
+                
+                if(colisionVacia == false){
+                    ballCurrentSpeedX = - 3;
+                }
             };
         };
         //inicia la animacion de la bola
@@ -115,5 +132,52 @@ public class PongFX extends Application {
         ventana.setOnKeyReleased((KeyEvent event) -> {
             stickCurrentSpeed = 0;
         });
+        for (int i=0; i<SCENE_TAM_Y; i+=30) {
+            Line line = new Line(SCENE_TAM_X/2, i, SCENE_TAM_X/2, i+10);
+            line.setStroke(Color.WHITE);
+            line.setStrokeWidth(4);
+            root.getChildren().add(line);
+        };
+        
+
+        //LAYOUTS PARA MOSTRAR PUNTUACIONES
+        //Layout Principal
+        HBox paneScores = new HBox();
+        paneScores.setTranslateY(20);
+        paneScores.setMinWidth(SCENE_TAM_X);
+        paneScores.setAlignment(Pos.CENTER);
+        paneScores.setSpacing(100);
+        root.getChildren().add(paneScores);
+        //Layout para puntuacion actual
+        HBox paneCurrentScore = new HBox();
+        paneCurrentScore.setSpacing(20);
+        paneScores.getChildren().add(paneCurrentScore);
+        //Layout para la puntuación máxima
+        HBox paneHighScore = new HBox();
+        paneCurrentScore.setSpacing(20);
+        paneScores.getChildren().add(paneHighScore);
+        //Texto de la etiqueta para la puntuación
+        Text textTitleScore = new Text("Score:");
+        textTitleScore.setFont(Font.font(TEXT_SIZE));
+        textTitleScore.setFill(Color.WHITE);
+        //texto para la puntuacion
+        Text textScore = new Text("0");
+        textScore.setFont(Font.font(TEXT_SIZE));
+        textScore.setFill(Color.WHITE);
+        //Texto de etiqueta ara la puntiacion maxima
+        Text textTitleHighScore = new Text("Max.Score:");
+        textTitleHighScore.setFont(Font.font(TEXT_SIZE));
+        textTitleHighScore.setFill(Color.WHITE);
+        //Texto puntuacion maxima
+        Text textHighScore = new Text("0");
+        textHighScore.setFont(Font.font(TEXT_SIZE));
+        textHighScore.setFill(Color.WHITE);
+        //Añadir texto a los los layout reservados para ellos
+        paneCurrentScore.getChildren().add(textTitleScore);
+        paneCurrentScore.getChildren().add(textScore);
+        paneHighScore.getChildren().add(textTitleHighScore);
+        paneHighScore.getChildren().add(textHighScore);
+        
+        
     };
 };
