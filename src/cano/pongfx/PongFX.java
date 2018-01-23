@@ -45,7 +45,12 @@ public class PongFX extends Application {
     int stickCurrentSpeed = 0;
     //tamaño del texto de los marcadores
     final int TEXT_SIZE = 20;
-    //puntuacion
+    //puntuacion actual
+    int score;
+    //puntuacion maxima
+    int highScore;
+    //texto puntuacion
+    Text textScore;
     
     @Override
     public void start(Stage primaryStage) {
@@ -69,24 +74,102 @@ public class PongFX extends Application {
         //crear el stick
         Rectangle rectStick = new Rectangle(SCENE_TAM_X*0.9, stickPosY, STICK_WIDTH, STICK_HEIGHT);
         rectStick.setFill(Color.BLUEVIOLET);
-        root.getChildren().add(rectStick);
-
+        root.getChildren().add(rectStick);       
+        
+        //codigo pulsar boton
+        ventana.setOnKeyPressed((KeyEvent event) -> {
+            switch(event.getCode()){
+                case UP:
+                    //pulsada tecla arriba
+                    stickCurrentSpeed = -6;
+                    break;
+                case DOWN:
+                    //pulsada tecla abajo
+                    stickCurrentSpeed = 6;
+                    break;
+            }
+        });
+        //codigo soltar boton
+        ventana.setOnKeyReleased((KeyEvent event) -> {
+            stickCurrentSpeed = 0;
+        });
+        
+        for (int i=0; i<SCENE_TAM_Y; i+=30) {
+            Line line = new Line(SCENE_TAM_X/2, i, SCENE_TAM_X/2, i+10);
+            line.setStroke(Color.WHITE);
+            line.setStrokeWidth(4);
+            root.getChildren().add(line);
+        };
+        //LAYOUTS PARA MOSTRAR PUNTUACIONES
+        //Layout Principal
+        HBox paneScores = new HBox();
+        paneScores.setTranslateY(20);
+        paneScores.setMinWidth(SCENE_TAM_X);
+        paneScores.setAlignment(Pos.CENTER);
+        paneScores.setSpacing(100);
+        root.getChildren().add(paneScores);
+        
+        //Layout para puntuacion actual
+        HBox paneCurrentScore = new HBox();
+        paneCurrentScore.setSpacing(20);
+        paneScores.getChildren().add(paneCurrentScore);
+        
+        //Layout para la puntuación máxima
+        HBox paneHighScore = new HBox();
+        paneCurrentScore.setSpacing(20);
+        paneScores.getChildren().add(paneHighScore);
+        
+        //Texto de la etiqueta para la puntuación
+        Text textTitleScore = new Text("Score:");
+        textTitleScore.setFont(Font.font(TEXT_SIZE));
+        textTitleScore.setFill(Color.WHITE);
+        
+        //texto para la puntuacion
+        Text textScore = new Text("0");
+        textScore.setFont(Font.font(TEXT_SIZE));
+        textScore.setFill(Color.WHITE);
+        
+        //Texto de etiqueta ara la puntiacion maxima
+        Text textTitleHighScore = new Text("Max Score: ");
+        textTitleHighScore.setFont(Font.font(TEXT_SIZE));
+        textTitleHighScore.setFill(Color.WHITE);
+        
+        //Texto puntuacion maxima
+        Text textHighScore = new Text("0");
+        textHighScore.setFont(Font.font(TEXT_SIZE));
+        textHighScore.setFill(Color.WHITE);
+        
+        //Añadir texto a los los layout reservados para ellos
+        paneCurrentScore.getChildren().add(textTitleScore);
+        paneCurrentScore.getChildren().add(textScore);
+        paneHighScore.getChildren().add(textTitleHighScore);
+        paneHighScore.getChildren().add(textHighScore);
+    
         //clase que permite el movimiento
-        AnimationTimer animationBall = new AnimationTimer() {
+        AnimationTimer animationBall;
+        animationBall = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 
                 ball.setCenterX(ballCenterX);
                 ballCenterX+= ballCurrentSpeedX;
-                if(ballCenterX >= 600){
-                    ballCurrentSpeedX = -3;
+                if(ballCenterX >= SCENE_TAM_X){
+                    if (score > highScore) {
+                        highScore = score;
+                        textHighScore.setText(String.valueOf(highScore));
+                    }
+                    //reiniciar partida
+                    score = 0;
+                    textScore.setText(String.valueOf(score));
+                    ballCenterX = 10;
+                    ballCurrentSpeedY = 3;
                 }
                 if(ballCenterX <= 0){
                     ballCurrentSpeedX = 3;
                 }
                 ball.setCenterY(ballCenterY);
                 ballCenterY+= ballCurrentSpeedY;
-                if(ballCenterY >= 400){
+                if(ballCenterY >= SCENE_TAM_Y){
                     ballCurrentSpeedY = -3;
                 }
                 if(ballCenterY <= 0){
@@ -107,77 +190,23 @@ public class PongFX extends Application {
                 Shape shapeColision = Shape.intersect(ball, rectStick);
                 boolean colisionVacia = shapeColision.getBoundsInLocal().isEmpty();
                 
-                if(colisionVacia == false){
+                //Marca la puntuacion cuando la bola choca con la pala
+                if(colisionVacia == false && ballCurrentSpeedX > 0){
                     ballCurrentSpeedX = - 3;
+                    score++;
+                    textScore.setText(String.valueOf(score));
                 }
             };
         };
+        
         //inicia la animacion de la bola
         animationBall.start();
-        
-        //codigo pulsar boton
-        ventana.setOnKeyPressed((KeyEvent event) -> {
-            switch(event.getCode()){
-                case UP:
-                    //pulsada tecla arriba
-                    stickCurrentSpeed = -6;
-                    break;
-                case DOWN:
-                    //pulsada tecla abajo
-                    stickCurrentSpeed = 6;
-                    break;
-            }
-        });
-        //codigo soltar boton
-        ventana.setOnKeyReleased((KeyEvent event) -> {
-            stickCurrentSpeed = 0;
-        });
-        for (int i=0; i<SCENE_TAM_Y; i+=30) {
-            Line line = new Line(SCENE_TAM_X/2, i, SCENE_TAM_X/2, i+10);
-            line.setStroke(Color.WHITE);
-            line.setStrokeWidth(4);
-            root.getChildren().add(line);
-        };
-        
-
-        //LAYOUTS PARA MOSTRAR PUNTUACIONES
-        //Layout Principal
-        HBox paneScores = new HBox();
-        paneScores.setTranslateY(20);
-        paneScores.setMinWidth(SCENE_TAM_X);
-        paneScores.setAlignment(Pos.CENTER);
-        paneScores.setSpacing(100);
-        root.getChildren().add(paneScores);
-        //Layout para puntuacion actual
-        HBox paneCurrentScore = new HBox();
-        paneCurrentScore.setSpacing(20);
-        paneScores.getChildren().add(paneCurrentScore);
-        //Layout para la puntuación máxima
-        HBox paneHighScore = new HBox();
-        paneCurrentScore.setSpacing(20);
-        paneScores.getChildren().add(paneHighScore);
-        //Texto de la etiqueta para la puntuación
-        Text textTitleScore = new Text("Score:");
-        textTitleScore.setFont(Font.font(TEXT_SIZE));
-        textTitleScore.setFill(Color.WHITE);
-        //texto para la puntuacion
-        Text textScore = new Text("0");
-        textScore.setFont(Font.font(TEXT_SIZE));
-        textScore.setFill(Color.WHITE);
-        //Texto de etiqueta ara la puntiacion maxima
-        Text textTitleHighScore = new Text("Max.Score:");
-        textTitleHighScore.setFont(Font.font(TEXT_SIZE));
-        textTitleHighScore.setFill(Color.WHITE);
-        //Texto puntuacion maxima
-        Text textHighScore = new Text("0");
-        textHighScore.setFont(Font.font(TEXT_SIZE));
-        textHighScore.setFill(Color.WHITE);
-        //Añadir texto a los los layout reservados para ellos
-        paneCurrentScore.getChildren().add(textTitleScore);
-        paneCurrentScore.getChildren().add(textScore);
-        paneHighScore.getChildren().add(textTitleHighScore);
-        paneHighScore.getChildren().add(textHighScore);
-        
-        
     };
+    private void resetGame(){
+        score = 0;
+        textScore.setText(String.valueOf(score));
+        ballCenterX = 10;
+        ballCurrentSpeedY = 3;
+        
+    }
 };
