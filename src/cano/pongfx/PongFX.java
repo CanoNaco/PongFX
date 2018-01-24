@@ -2,6 +2,7 @@
 package cano.pongfx;
 
 //los nombres de las clases siempre empiezan por mayuscula
+import java.util.Random;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.event.EventHandler;
@@ -51,11 +52,12 @@ public class PongFX extends Application {
     int highScore;
     //texto puntuacion
     Text textScore;
+    //lienzo de la bola
+    Pane root = new Pane();
     
+      
     @Override
     public void start(Stage primaryStage) {
-        //lienzo de la bola
-        Pane root = new Pane();
         //el tamaño de la ventana
         Scene ventana = new Scene(root, 600, 400);
         //cambio de color de la ventana
@@ -93,13 +95,9 @@ public class PongFX extends Application {
         ventana.setOnKeyReleased((KeyEvent event) -> {
             stickCurrentSpeed = 0;
         });
+        //Llama al metodo de la red
         
-        for (int i=0; i<SCENE_TAM_Y; i+=30) {
-            Line line = new Line(SCENE_TAM_X/2, i, SCENE_TAM_X/2, i+10);
-            line.setStroke(Color.WHITE);
-            line.setStrokeWidth(4);
-            root.getChildren().add(line);
-        };
+            
         //LAYOUTS PARA MOSTRAR PUNTUACIONES
         //Layout Principal
         HBox paneScores = new HBox();
@@ -125,7 +123,7 @@ public class PongFX extends Application {
         textTitleScore.setFill(Color.WHITE);
         
         //texto para la puntuacion
-        Text textScore = new Text("0");
+        textScore = new Text("0");
         textScore.setFont(Font.font(TEXT_SIZE));
         textScore.setFill(Color.WHITE);
         
@@ -144,10 +142,17 @@ public class PongFX extends Application {
         paneCurrentScore.getChildren().add(textScore);
         paneHighScore.getChildren().add(textTitleHighScore);
         paneHighScore.getChildren().add(textHighScore);
+        
+        resetGame();
+        drawNet(10, 4, 30);
     
         //clase que permite el movimiento
         AnimationTimer animationBall;
         animationBall = new AnimationTimer() {
+            
+            //variable para detectar la seccion de colision
+            int collisionZone = getStickCollisionZone(ball, rectStick);
+            
             @Override
             public void handle(long now) {
                 
@@ -159,10 +164,7 @@ public class PongFX extends Application {
                         textHighScore.setText(String.valueOf(highScore));
                     }
                     //reiniciar partida
-                    score = 0;
-                    textScore.setText(String.valueOf(score));
-                    ballCenterX = 10;
-                    ballCurrentSpeedY = 3;
+                    resetGame();
                 }
                 if(ballCenterX <= 0){
                     ballCurrentSpeedX = 3;
@@ -170,10 +172,20 @@ public class PongFX extends Application {
                 ball.setCenterY(ballCenterY);
                 ballCenterY+= ballCurrentSpeedY;
                 if(ballCenterY >= SCENE_TAM_Y){
-                    ballCurrentSpeedY = -3;
+                     if (ballCurrentSpeedY == 3) {
+                        ballCurrentSpeedY = -3;
+                    }
+                    if (ballCurrentSpeedY == 6){
+                        ballCurrentSpeedY = -6;
+                    }
                 }
                 if(ballCenterY <= 0){
-                    ballCurrentSpeedY = 3;
+                     if (ballCurrentSpeedY == -3) {
+                        ballCurrentSpeedY = 3;
+                    }
+                    if (ballCurrentSpeedY == -6){
+                        ballCurrentSpeedY = 6;
+                    }
                 }
                 //movimiento de la pala
                 stickPosY += stickCurrentSpeed;
@@ -192,21 +204,89 @@ public class PongFX extends Application {
                 
                 //Marca la puntuacion cuando la bola choca con la pala
                 if(colisionVacia == false && ballCurrentSpeedX > 0){
+                    
                     ballCurrentSpeedX = - 3;
                     score++;
                     textScore.setText(String.valueOf(score));
                 }
+                calculateBallSpeed(collisionZone);
             };
+            
         };
-        
         //inicia la animacion de la bola
         animationBall.start();
+    };
+    private void darwNet(Pane root, int portionHeight, int portionWidth, int portionSpacing){
+        for (int i=0; i<SCENE_TAM_Y; i+=portionSpacing) {
+            Line line = new Line(SCENE_TAM_X/2, i, SCENE_TAM_X/2, i+portionHeight);
+            line.setStroke(Color.WHITE);
+            line.setStrokeWidth(4);
+            root.getChildren().add(line);
+        };
     };
     private void resetGame(){
         score = 0;
         textScore.setText(String.valueOf(score));
         ballCenterX = 10;
         ballCurrentSpeedY = 3;
+        //posicion inicial de la bola aleatoria
+        Random random = new Random();
+        ballCenterY = random.nextInt(SCENE_TAM_Y);
         
+    }
+    private void drawNet(int portionHeight, int portionWidth, int portionSpacing){
+        for (int i=0; i<SCENE_TAM_Y; i+=portionSpacing) {
+            Line line = new Line(SCENE_TAM_X/2, i, SCENE_TAM_X/2, i+portionHeight);
+            line.setStroke(Color.WHITE);
+            line.setStrokeWidth(4);
+            root.getChildren().add(line);
+        };
+    };
+    private int getStickCollisionZone(Circle ball, Rectangle stick){
+        if(Shape.intersect(ball, stick).getBoundsInLocal().isEmpty()){
+            return 0;
+        }
+        else {
+            double offsetBallStick = ball.getCenterY()- stick.getY();
+            if(offsetBallStick < stick.getHeight() * 0.1){
+                return 1;
+            }
+            else if(offsetBallStick < stick.getHeight() / 2){
+                return 2;
+            }
+            else if(offsetBallStick >= stick.getHeight() / 2 && offsetBallStick < stick.getHeight() * 0.9){
+                return 3;
+            }
+            else {
+                return 4;
+            }
+        }
+    };
+    private void calculateBallSpeed (int collisionZone){
+        switch(collisionZone){
+            case 0:
+                //No hay colision
+                break;
+            case 1:
+                //Hay colision en la esquina superior
+                ballCurrentSpeedX = -3;
+                ballCurrentSpeedY = -6;
+                break;
+            case 2:
+                // Hay colision lado superior
+                ballCurrentSpeedX = -3;
+                ballCurrentSpeedY = -3;
+                break;
+            case 3:
+                //Hay colision lado inferior
+                ballCurrentSpeedX = -3;
+                ballCurrentSpeedY = 3;
+                break;
+            case 4:
+                //Hay colisión esquina inferior
+                ballCurrentSpeedX = -3;
+                ballCurrentSpeedY = 6;
+                break;
+        }
     }
 };
